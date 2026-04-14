@@ -22,3 +22,4 @@ int bigramToNum(const string& bg);
 string numToBigram(int x);
 string decrypt(const string& text, int a, int b);
 bool isRusText(const string& text);
+void findKeyAndDecrypt(const string& text, ofstream& out);
