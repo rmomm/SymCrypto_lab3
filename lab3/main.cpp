@@ -14,8 +14,8 @@ int main() {
 
     vector<pair<string, int>> vec(freq.begin(), freq.end());
     sort(vec.begin(), vec.end(),
-        [](auto& a, auto& b) { r
-        eturn a.second > b.second; 
+        [](auto& a, auto& b) { 
+            return a.second > b.second; 
         });
 
     vector<string> cipherBigrams;
