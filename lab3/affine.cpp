@@ -21,7 +21,7 @@ string decrypt(const string& text, int a, int b) {
 
     int a_inv = modInverse(a, m);
     if (a_inv == -1) {
-        return ""; 
+        return "";
     }
 
     for (size_t i = 0; i + 1 < text.size(); i += 2) {
@@ -35,14 +35,45 @@ string decrypt(const string& text, int a, int b) {
     return result;
 }
 
+
 bool isRusText(const string& text) {
-    int count_o = count(text.begin(), text.end(), 'о');
-    int count_a = count(text.begin(), text.end(), 'а');
-    int count_e = count(text.begin(), text.end(), 'е');
+    int count_o = 0;
+    int count_a = 0;
+    int count_e = 0;
+    int count_bad = 0;
 
-    double ratio = (double)(count_o + count_a + count_e) / text.size();
+    for (char c : text) {
+        if (c == 'о') count_o++;
+        if (c == 'а') count_a++;
+        if (c == 'е') count_e++;
 
-    return ratio > 0.2;
+        if (c == 'ф' || c == 'щ')
+            count_bad++;
+    }
+
+    double n = text.size();
+
+    if (n == 0) { 
+        return false; 
+    }
+
+    if (!(count_o / n > 0.07 && count_a / n > 0.05 && count_e / n > 0.05 && count_bad / n < 0.02))
+        return false;
+
+    vector<string> common = { "ст","но","то","на","ен","ни","ов","ра" };
+    int good = 0;
+    for (auto& bg : common) {
+        if (text.find(bg) != string::npos)
+            good++;
+    }
+
+    return good >= 4;
+}
+
+int my_gcd(int a, int b)
+{
+    int x, y;
+    return extendedgcd(a, b, x, y);
 }
 
 void findKeyAndDecrypt(const string& text, ofstream& out) {
@@ -50,7 +81,7 @@ void findKeyAndDecrypt(const string& text, ofstream& out) {
     vector<pair<string, int>> vec(freq.begin(), freq.end());
 
     sort(vec.begin(), vec.end(), [](auto& a, auto& b) {
-            return a.second > b.second;
+        return a.second > b.second;
     });
 
     vector<string> cipherBigrams;
@@ -63,14 +94,16 @@ void findKeyAndDecrypt(const string& text, ofstream& out) {
     }
 
     vector<string> lang = { "ст","но","то","на","ен" };
+    bool found = false;
 
     for (auto X1 : lang)
         for (auto X2 : lang)
             for (auto Y1 : cipherBigrams)
                 for (auto Y2 : cipherBigrams)
                 {
-                    if (X1 == X2 || Y1 == Y2)
-                        continue;
+                    if (X1 == X2 || Y1 == Y2) { 
+                        continue; 
+                    }
 
                     int x1 = bigramToNum(X1);
                     int x2 = bigramToNum(X2);
@@ -83,15 +116,21 @@ void findKeyAndDecrypt(const string& text, ofstream& out) {
                     vector<int> a_vals = LinCongr(dx, dy, m);
 
                     for (int a : a_vals) {
+
+                        if (my_gcd(a, m) != 1) { 
+                            continue; 
+                        }
+
                         int b = (y1 - a * x1) % m;
 
-                        if (b < 0) { 
-                            b += m; 
+                        if (b < 0) {
+                            b += m;
                         }
 
                         string dec = decrypt(text, a, b);
 
                         if (!dec.empty() && isRusText(dec)) {
+                            found = true;
                             out << "\nKEY FOUND:\n";
                             out << "a = " << a << " b = " << b << "\n";
 
@@ -102,10 +141,12 @@ void findKeyAndDecrypt(const string& text, ofstream& out) {
                             out << "\nDECRYPTED TEXT:\n";
                             out << dec << "\n";
 
-                            return;
+                            continue;
                         }
                     }
                 }
 
-    out << "\nKey not found\n";
+    if (!found) { 
+        out << "\nKey not found\n"; 
+    }
 }
