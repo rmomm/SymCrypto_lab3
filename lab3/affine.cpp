@@ -93,7 +93,13 @@ void findKeyAndDecrypt(const string& text, ofstream& out) {
 
                         if (!dec.empty() && isRusText(dec)) {
                             out << "\nKEY FOUND:\n";
-                            out << "a=" << a << " b=" << b << "\n";
+                            out << "a = " << a << " b = " << b << "\n";
+
+                            out << "Used bigrams:\n";
+                            out << X1 << " -> " << Y1 << "\n";
+                            out << X2 << " -> " << Y2 << "\n";
+
+                            out << "\nDECRYPTED TEXT:\n";
                             out << dec << "\n";
 
                             return;
